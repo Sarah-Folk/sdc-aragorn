@@ -1,8 +1,8 @@
 {
-  "name": "fec",
+  "name": "node-api-postgres",
   "version": "1.0.0",
-  "description": "FEC Project - GYSR",
-  "main": "server/server.js",
+  "description": "PostgreSQL Product API",
+  "main": "server/index.js",
   "scripts": {
     "test": "jest --config=jest.config.js",
     "test:coverage": "jest --config=jest.config.js --coverage",
@@ -72,6 +72,7 @@
     "mysql2": "^3.2.0",
     "node-polyfill-webpack-plugin": "^2.0.1",
     "path": "^0.12.7",
+    "pg": "^8.10.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.5",

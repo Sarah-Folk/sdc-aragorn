@@ -7,3 +7,10 @@ client/dist/bundle.js.map
 client/dist/output.css
 client/src/app.jsx
 coverage
+
+db/product.csv
+db/features.csv
+db/related.csv
+db/styles.csv
+db/photos.csv
+db/skus.csv
