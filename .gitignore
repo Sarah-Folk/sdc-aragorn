@@ -14,3 +14,4 @@ db/related.csv
 db/styles.csv
 db/photos.csv
 db/skus.csv
+db/analysisandmisc.pgsql
