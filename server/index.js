@@ -1,8 +1,9 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const Promise = require('bluebird');
 const controller = require('../db/controllers.js');
-const port = 3000;
+const port = process.env.PORT || 3000;
 const app = express();
 
 app.use(express.json());
@@ -11,9 +12,26 @@ app.use(morgan('tiny'));
 app.use(cors());
 
 app.get('/products', (req, res) => {
-  controller.retrieveProductsFromDatabase(Number(req.query.count))
+  let startingId;
+  let endingId;
+  let count = req.query.count;
+  let page = req.query.page;
+  if (!count && !page) {
+    startingId = 1;
+    endingId = 5;
+  } else if (count && !page) {
+    startingId = 1;
+    endingId = Number(count);
+  } else if (!count && page) {
+    startingId = (Number(page) - 1) * 5 + 1;
+    endingId = startingId + 4;
+  } else {
+    startingId = (Number(page) - 1) * Number(count) + 1;
+    endingId = startingId + Number(count) - 1;
+  }
+  controller.retrieveProductsFromDatabase(startingId, endingId)
   .then(result => {
-    res.send(result.rows);
+    return res.send(result.rows);
   })
   .catch(err => {
     console.log(err);
@@ -25,7 +43,7 @@ app.get('/products/:product_id', (req, res) => {
   let id = req.client.parser.incoming.params.product_id;
   controller.retrieveProductFromDatabaseById(id)
   .then(result => {
-    res.send(result.rows[0].result);
+    return res.send(result.rows[0].result);
   })
   .catch(err => {
     console.log(err);
@@ -38,9 +56,9 @@ app.get('/products/:product_id/styles', (req, res) => {
   controller.retrieveStylesFromDatabaseById(id)
   .then(result => {
     if (result.rows.length) {
-      res.send(result.rows[0].result);
+      return res.send(result.rows[0].result);
     } else {
-      res.send({'product_id': id, 'results': []})
+      return res.send({'product_id': id, 'results': []})
     }
   })
   .catch(err => {
@@ -53,7 +71,64 @@ app.get('/products/:product_id/related', (req, res) => {
   let id = req.client.parser.incoming.params.product_id;
   controller.retrieveRelatedFromDatabaseById(id)
   .then(result => {
-    res.send(result.rows[0].related_ids);
+    return res.send(result.rows[0].related_ids);
+  })
+  .catch(err => {
+    console.log(err);
+    res.end();
+  });
+});
+
+app.get('/products/:product_id/overview', (req, res) => {
+  let id = req.client.parser.incoming.params.product_id;
+  controller.retrieveOverviewDataFromDatabaseById(id)
+  .then(result => {
+    if (result.rows.length) {
+      return res.send(result.rows[0].result);
+    } else {
+      controller.retrieveProductFromDatabaseById(id)
+      .then(result => {
+        result.rows[0].result.styles = null;
+        return res.send(result.rows[0].result);
+      })
+    }
+  })
+  .catch(err => {
+    console.log(err);
+    res.end();
+  });
+});
+
+app.get('/products/:product_id/related-cards', (req, res) => {
+  let id = req.client.parser.incoming.params.product_id;
+  controller.retrieveRelatedFromDatabaseById(id)
+  .then(result => {
+    return controller.formatProductCardsData(result.rows[0].related_ids);
+  })
+  .then(cards => {
+    return res.send(cards);
+  })
+  .catch(err => {
+    console.log(err);
+    res.end();
+  });
+});
+
+app.get('/products/:product_id/card', (req, res) => {
+  let id = req.client.parser.incoming.params.product_id;
+  controller.retrieveProductCardsDataFromDatabaseById(id)
+  .then(result => {
+    if (result.rows.length) {
+      return res.send(result.rows[0].result);
+    } else {
+      controller.retrieveProductFromDatabaseById(id)
+      .then(result => {
+        result.rows[0].result.styles = null;
+        delete result.rows[0].result.slogan;
+        delete result.rows[0].result.description;
+        return res.send(result.rows[0].result);
+      })
+    }
   })
   .catch(err => {
     console.log(err);
@@ -62,5 +137,5 @@ app.get('/products/:product_id/related', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`App running on port ${port}`);
+  console.log(`Listening on port ${port}`);
 });
