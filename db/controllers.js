@@ -1,13 +1,23 @@
-const pg = require('pg');
-const path = require('path');
-let connectionUrl = 'postgresql://localhost/products';
-const pgClient = new pg.Client(connectionUrl);
-pgClient.connect();
+require('dotenv').config();
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  user: process.env.PGUSER,
+  host: process.env.PGHOST,
+  database: process.env.PGDATABASE,
+  password: process.env.PGPASSWORD,
+  port: process.env.PGPORT
+});
+
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
 
 const retrieveProductsFromDatabase = (start, end) => {
   start = start || 1;
   end = end || 5;
-  let query = pgClient.query(`
+  let query = pool.query(`
     SELECT *
     FROM products WHERE id >= ${start} AND id <= ${end};
   `);
@@ -15,7 +25,7 @@ const retrieveProductsFromDatabase = (start, end) => {
 };
 
 const retrieveProductFromDatabaseById = (id) => {
-  let query = pgClient.query(`
+  let query = pool.query(`
     SELECT
       json_build_object(
         'id', p.id,
@@ -39,7 +49,7 @@ const retrieveProductFromDatabaseById = (id) => {
 };
 
 const retrieveStylesFromDatabaseById = (id) => {
-  let query = pgClient.query(`
+  let query = pool.query(`
     SELECT
       json_build_object(
         'product_id', s.productid,
@@ -80,7 +90,7 @@ const retrieveStylesFromDatabaseById = (id) => {
 };
 
 const retrieveRelatedFromDatabaseById = (id) => {
-  let query = pgClient.query(`
+  let query = pool.query(`
     SELECT COALESCE(json_agg(
       relatedid), '[]'::json) AS related_ids
     FROM related WHERE currentid = ${id};
@@ -89,7 +99,7 @@ const retrieveRelatedFromDatabaseById = (id) => {
 };
 
 const retrieveOverviewDataFromDatabaseById = (id) => {
-  let query = pgClient.query(`
+  let query = pool.query(`
     SELECT json_build_object(
       'id', p.id,
       'name', p.name,
@@ -142,7 +152,7 @@ const retrieveOverviewDataFromDatabaseById = (id) => {
 };
 
 const retrieveProductCardsDataFromDatabaseById = (id) => {
-  let query = pgClient.query(`
+  let query = pool.query(`
     SELECT json_build_object(
       'id', p.id,
       'name', p.name,

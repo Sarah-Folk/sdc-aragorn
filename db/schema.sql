@@ -17,7 +17,7 @@ CREATE TABLE products (
 );
 
 COPY products(id, name, slogan, description, category, default_price)
-FROM '/Users/sarahfolk/Hack Reactor/sdc-aragorn/db/product.csv'
+FROM '/Users/sarahfolk/Hack-Reactor/sdc-aragorn/db/product.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -26,13 +26,11 @@ CREATE TABLE features (
   productId INTEGER,
   feature VARCHAR(255),
   value VARCHAR(255),
-  PRIMARY KEY (id),
-  FOREIGN KEY(productId)
-  REFERENCES products(id)
+  PRIMARY KEY (id)
 );
 
 COPY features(id, productId, feature, value)
-FROM '/Users/sarahfolk/Hack Reactor/sdc-aragorn/db/features.csv'
+FROM '/Users/sarahfolk/Hack-Reactor/sdc-aragorn/db/features.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -40,13 +38,11 @@ CREATE TABLE related (
   id INTEGER,
   currentId INTEGER,
   relatedId INTEGER,
-  PRIMARY KEY (id),
-  FOREIGN KEY(currentId)
-  REFERENCES products(id)
+  PRIMARY KEY (id)
 );
 
 COPY related(id, currentId, relatedId)
-FROM '/Users/sarahfolk/Hack Reactor/sdc-aragorn/db/related.csv'
+FROM '/Users/sarahfolk/Hack-Reactor/sdc-aragorn/db/related.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -57,13 +53,11 @@ CREATE TABLE styles (
   salePrice VARCHAR(50),
   originalPrice NUMERIC,
   defaultStyle INTEGER,
-  PRIMARY KEY (id),
-  FOREIGN KEY(productId)
-  REFERENCES products(id)
+  PRIMARY KEY (id)
 );
 
 COPY styles(id, productId, name, salePrice, originalPrice, defaultStyle)
-FROM '/Users/sarahfolk/Hack Reactor/sdc-aragorn/db/styles.csv'
+FROM '/Users/sarahfolk/Hack-Reactor/sdc-aragorn/db/styles.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -72,13 +66,11 @@ CREATE TABLE photos (
   styleId INTEGER,
   url VARCHAR(1000),
   thumbnailUrl VARCHAR(1000),
-  PRIMARY KEY (id),
-  FOREIGN KEY(styleId)
-  REFERENCES styles(id)
+  PRIMARY KEY (id)
 );
 
 COPY photos(id, styleId, url, thumbnailUrl)
-FROM '/Users/sarahfolk/Hack Reactor/sdc-aragorn/db/photos.csv'
+FROM '/Users/sarahfolk/Hack-Reactor/sdc-aragorn/db/photos.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -87,12 +79,10 @@ CREATE TABLE skus (
   styleId INTEGER,
   size VARCHAR(10),
   quantity INTEGER,
-  PRIMARY KEY (id),
-  FOREIGN KEY(styleId)
-  REFERENCES styles(id)
+  PRIMARY KEY (id)
 );
 
 COPY skus(id, styleId, size, quantity)
-FROM '/Users/sarahfolk/Hack Reactor/sdc-aragorn/db/skus.csv'
+FROM '/Users/sarahfolk/Hack-Reactor/sdc-aragorn/db/skus.csv'
 DELIMITER ','
 CSV HEADER;
