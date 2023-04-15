@@ -5,18 +5,12 @@ module.exports = {
   options: {
     stages: [
       { duration: '5s', target: 0 },
-      { duration: '30s', target: 5000 },
+      { duration: '30s', target: 1500 },
       { duration: '5s', target: 0 }
-
     ]
-    // ,
-    // thresholds: {
-    //   http_req_duration: ['p(90)<20', 'p(95)<50', 'p(100)<200']
-    // }
   },
 
   default: function () {
-
     const pages = [
       '/products?count=18&page=4',
       '/products/963547',

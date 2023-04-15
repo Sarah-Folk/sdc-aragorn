@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const path = require('path');
 const Promise = require('bluebird');
 const controller = require('../db/controllers.js');
 const port = process.env.PORT || 3000;
@@ -136,6 +137,10 @@ app.get('/products/:product_id/card', (req, res) => {
     res.end();
   });
 });
+
+app.get('/loaderio-0d053dd02c898860feefe734cfcf967f', (req, res) => {
+  res.sendFile(path.join(__dirname, '../spec/loaderio-0d053dd02c898860feefe734cfcf967f.txt'), err => console.log(err));
+})
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
