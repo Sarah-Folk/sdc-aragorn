@@ -12,7 +12,7 @@ module.exports = {
 
   default: function () {
     const pages = [
-      '/products?count=18&page=4',
+      '/products?count=10&page=4',
       '/products/963547',
       '/products/936565/styles',
       '/products/936547/related',
@@ -21,8 +21,8 @@ module.exports = {
       '/products/843760/card'
     ]
 
-    // for (let page of pages) {
-      const res = http.get('http://localhost:3000/products');
+    for (let page of pages) {
+      const res = http.get('http://hr-products-api-e14073b20de9c418.elb.us-east-2.amazonaws.com:3000' + page);
       // check(res, {
       //   'status was 200': (r) => r.status === 200,
       //   'duration was <= 20ms': (r) => r.timings.duration <= 20,
@@ -31,6 +31,6 @@ module.exports = {
       // });
       check(res, { 'status was 200': (r) => r.status == 200 });
       sleep(1);
-    // }
+    }
   }
 }

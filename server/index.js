@@ -4,14 +4,30 @@ const morgan = require('morgan');
 const cors = require('cors');
 const path = require('path');
 const Promise = require('bluebird');
+const memjs = require('memjs');
 const controller = require('../db/controllers.js');
 const port = process.env.PORT || 3000;
 const app = express();
+const memcached = memjs.Client.create();
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(morgan('tiny'));
 app.use(cors());
+
+const verifyCache = (req, res, next) => {
+  let id = req.params.product_id;
+  memcached.get(id, (err, value) => {
+    if (err) {
+      throw err;
+    }
+    if (value !== null) {
+      return res.send(JSON.parse(value));
+    } else {
+      return next();
+    }
+  });
+};
 
 app.get('/products', (req, res) => {
   let startingId;
@@ -41,10 +57,11 @@ app.get('/products', (req, res) => {
   });
 });
 
-app.get('/products/:product_id', (req, res) => {
-  let id = req.client.parser.incoming.params.product_id;
+app.get('/products/:product_id', verifyCache, (req, res) => {
+  let id = req.params.product_id;
   controller.retrieveProductFromDatabaseById(id)
-  .then(result => {
+  .then(async result => {
+    await memcached.set(id, JSON.stringify(result.rows[0].result), { expires: 600 });
     return res.send(result.rows[0].result);
   })
   .catch(err => {
@@ -53,13 +70,15 @@ app.get('/products/:product_id', (req, res) => {
   });
 });
 
-app.get('/products/:product_id/styles', (req, res) => {
-  let id = req.client.parser.incoming.params.product_id;
+app.get('/products/:product_id/styles', verifyCache, (req, res) => {
+  let id = req.params.product_id;
   controller.retrieveStylesFromDatabaseById(id)
-  .then(result => {
+  .then(async result => {
     if (result.rows.length) {
+      await memcached.set(id, JSON.stringify(result.rows[0].result), { expires: 600 });
       return res.send(result.rows[0].result);
     } else {
+      await memcached.set(id, JSON.stringify({'product_id': id, 'results': []}), { expires: 600 });
       return res.send({'product_id': id, 'results': []})
     }
   })
@@ -69,10 +88,11 @@ app.get('/products/:product_id/styles', (req, res) => {
   });
 });
 
-app.get('/products/:product_id/related', (req, res) => {
-  let id = req.client.parser.incoming.params.product_id;
+app.get('/products/:product_id/related', verifyCache, (req, res) => {
+  let id = req.params.product_id;
   controller.retrieveRelatedFromDatabaseById(id)
-  .then(result => {
+  .then(async result => {
+    await memcached.set(id, JSON.stringify(result.rows[0].related_ids), { expires: 600 });
     return res.send(result.rows[0].related_ids);
   })
   .catch(err => {
@@ -81,16 +101,18 @@ app.get('/products/:product_id/related', (req, res) => {
   });
 });
 
-app.get('/products/:product_id/overview', (req, res) => {
-  let id = req.client.parser.incoming.params.product_id;
+app.get('/products/:product_id/overview', verifyCache, (req, res) => {
+  let id = req.params.product_id;
   controller.retrieveOverviewDataFromDatabaseById(id)
-  .then(result => {
+  .then(async result => {
     if (result.rows.length) {
+      await memcached.set(id, JSON.stringify(result.rows[0].result), { expires: 600 });
       return res.send(result.rows[0].result);
     } else {
       controller.retrieveProductFromDatabaseById(id)
-      .then(result => {
+      .then(async result => {
         result.rows[0].result.styles = null;
+        await memcached.set(id, JSON.stringify(result.rows[0].result), { expires: 600 });
         return res.send(result.rows[0].result);
       })
     }
@@ -101,13 +123,14 @@ app.get('/products/:product_id/overview', (req, res) => {
   });
 });
 
-app.get('/products/:product_id/related-cards', (req, res) => {
-  let id = req.client.parser.incoming.params.product_id;
+app.get('/products/:product_id/related-cards', verifyCache, (req, res) => {
+  let id = req.params.product_id;
   controller.retrieveRelatedFromDatabaseById(id)
   .then(result => {
     return controller.formatProductCardsData(result.rows[0].related_ids);
   })
-  .then(cards => {
+  .then(async cards => {
+    await memcached.set(id, JSON.stringify(cards), { expires: 600 });
     return res.send(cards);
   })
   .catch(err => {
@@ -116,18 +139,20 @@ app.get('/products/:product_id/related-cards', (req, res) => {
   });
 });
 
-app.get('/products/:product_id/card', (req, res) => {
-  let id = req.client.parser.incoming.params.product_id;
+app.get('/products/:product_id/card', verifyCache, (req, res) => {
+  let id = req.params.product_id;
   controller.retrieveProductCardsDataFromDatabaseById(id)
-  .then(result => {
+  .then(async result => {
     if (result.rows.length) {
+      await memcached.set(id, JSON.stringify(result.rows[0].result), { expires: 600 });
       return res.send(result.rows[0].result);
     } else {
       controller.retrieveProductFromDatabaseById(id)
-      .then(result => {
+      .then(async result => {
         result.rows[0].result.styles = null;
         delete result.rows[0].result.slogan;
         delete result.rows[0].result.description;
+        await memcached.set(id, JSON.stringify(result.rows[0].result), { expires: 600 });
         return res.send(result.rows[0].result);
       })
     }
