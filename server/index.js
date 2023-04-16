@@ -138,8 +138,8 @@ app.get('/products/:product_id/card', (req, res) => {
   });
 });
 
-app.get('/loaderio-0d053dd02c898860feefe734cfcf967f', (req, res) => {
-  res.sendFile(path.join(__dirname, '../spec/loaderio-0d053dd02c898860feefe734cfcf967f.txt'), err => console.log(err));
+app.get('/loaderio-a365e0b8666e71f7c842e4aa192c1778', (req, res) => {
+  res.sendFile(path.join(__dirname, '../spec/loaderio-a365e0b8666e71f7c842e4aa192c1778.txt'), err => console.log(err));
 })
 
 app.listen(port, () => {
